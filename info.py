@@ -14,6 +14,7 @@ SESSION = environ.get('SESSION', 'TechVJBot')
 API_ID = int(environ.get('API_ID', '25377875'))
 API_HASH = environ.get('API_HASH', 'cf80e342be48570ca2e4c9d2c7695413')
 BOT_TOKEN = environ.get('BOT_TOKEN', "6727090795:AAG0GrGfy38VnQ92sKq1tlm01aezIfr6KQk")
+STREAM_FILES_CHANNEL_ID = int(environ.get('STREAM_FILES_CHANNEL_ID', '-1003142178593'))  # replace -1001234567890 with your numeric channel id
 
 
 # This Pictures Is For Start Message Picture, You Can Add Multiple By Giving One Space Between Each.
@@ -196,3 +197,4 @@ else:
 # Don't Remove Credit @VJ_Botz
 # Subscribe YouTube Channel For Amazing Bot @Tech_VJ
 # Ask Doubt on telegram @KingVJ01
+
