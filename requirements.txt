@@ -39,3 +39,21 @@ dnspython==2.3.0
 ffmpeg-python>=0.2.0
 openai==0.25.0
 git+https://github.com/Joelkb/cinemagoer
+
+# Core Telegram client
+pyrogram
+tgcrypto
+
+# Async HTTP client used for streaming API calls
+httpx
+
+# MongoDB async driver and sync driver
+
+# Environment variables loader
+python-dotenv
+
+# Web framework (used by some parts of the project)
+fastapi
+uvicorn[standard]
+
+# General HTTP client (used in various scripts)
