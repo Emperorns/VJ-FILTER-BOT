@@ -28,7 +28,7 @@ join_db = JoinReqs
 
 
 async def get_stream_link(channel_id: int, message_id: int, fallback_link: str) -> str:
-        """Generate a stream/watch link using the external hashing API.
+    """Generate a stream/watch link using the external hashing API.
     Returns fallback_link on failure."""
     bsse_url = "https://stream.codeltix.com"
     api_url = f"{bsse_url}/api/v1/hash/{channel_id}/{message_id}"
@@ -36,35 +36,36 @@ async def get_stream_link(channel_id: int, message_id: int, fallback_link: str) 
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(api_url)
     except Exception as e:
-        print(f\"[get_stream_link] API request failed: {e}\")
+        print(f"[get_stream_link] API request failed: {e}")
         return fallback_link
 
     if response.status_code != 200:
         try:
             text = response.text
-        except:
+        except Exception:
             text = ''
-        print(f\"[get_stream_link] API returned {response.status_code}: {text}\")
+        print(f"[get_stream_link] API returned {response.status_code}: {text}")
         return fallback_link
 
     try:
         data = response.json()
     except Exception as e:
-        print(f\"[get_stream_link] JSON decode error: {e}\")
+        print(f"[get_stream_link] JSON decode error: {e}")
         return fallback_link
 
-    res_data = data.get(\"data\") if isinstance(data, dict) else None
+    res_data = data.get("data") if isinstance(data, dict) else None
     if not res_data:
         return fallback_link
 
-    msg_id = res_data.get(\"message_id\")
-    ch_id = res_data.get(\"channel_id\")
-    hash_val = res_data.get(\"hash\")
+    msg_id = res_data.get("message_id")
+    ch_id = res_data.get("channel_id")
+    hash_val = res_data.get("hash")
 
     if not (msg_id and ch_id and hash_val):
         return fallback_link
 
-    return f\"{bsse_url}/watch/{ch_id}/{msg_id}?hash={hash_val}\"\n
+    return f"{bsse_url}/watch/{ch_id}/{msg_id}?hash={hash_val}"
+
 @Client.on_message(filters.command("start") & filters.incoming)
 async def start(client, message):
     try:
@@ -1547,4 +1548,5 @@ async def purge_requests(client, message):
             parse_mode=enums.ParseMode.MARKDOWN,
             disable_web_page_preview=True
 )
+
 
