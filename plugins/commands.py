@@ -28,8 +28,8 @@ join_db = JoinReqs
 
 
 async def get_stream_link(channel_id: int, message_id: int, fallback_link: str) -> str:
-    \"\"\"Generate a stream/watch link using the external hashing API.
-    Returns fallback_link on failure.\"\"\"
+        """Generate a stream/watch link using the external hashing API.
+    Returns fallback_link on failure."""
     bsse_url = "https://stream.codeltix.com"
     api_url = f"{bsse_url}/api/v1/hash/{channel_id}/{message_id}"
     try:
@@ -1547,3 +1547,4 @@ async def purge_requests(client, message):
             parse_mode=enums.ParseMode.MARKDOWN,
             disable_web_page_preview=True
 )
+
