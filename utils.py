@@ -30,7 +30,16 @@ SECOND_SHORTENER = {}
 SMART_OPEN = '“'
 SMART_CLOSE = '”'
 START_CHAR = ('\'', '"', SMART_OPEN)
+# ================= ROTATING SHORTENERS =================
 
+ROTATING_SHORTENERS = [
+    {"url": "shortener1.com", "api": "API_KEY_1"},
+    {"url": "shortener2.com", "api": "API_KEY_2"},
+    {"url": "shortener3.com", "api": "API_KEY_3"},
+]
+
+USER_SHORTENER_STATE = {}   # {user_id: {"index": int, "time": datetime}}
+ROTATION_RESET_TIME = timedelta(hours=24)
 # temp db for banned 
 class temp(object):
     BANNED_USERS = []
@@ -736,4 +745,5 @@ async def get_seconds(time_string):
         return value * 86400 * 365
     else:
         return 0
+
 
