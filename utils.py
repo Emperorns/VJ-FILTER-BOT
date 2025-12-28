@@ -240,6 +240,23 @@ async def save_group_settings(group_id, key, value):
     current.update({key: value})
     await db.update_settings(group_id, current)
     
+def _select_shortener(user_id: int):
+    now = datetime.utcnow()
+
+    if user_id not in USER_SHORTENER_STATE:
+        USER_SHORTENER_STATE[user_id] = {"index": 0, "time": now}
+        return ROTATING_SHORTENERS[0]
+
+    data = USER_SHORTENER_STATE[user_id]
+
+    if now - data["time"] >= ROTATION_RESET_TIME:
+        data["index"] = 0
+        data["time"] = now
+        return ROTATING_SHORTENERS[0]
+
+    data["index"] = (data["index"] + 1) % len(ROTATING_SHORTENERS)
+    return ROTATING_SHORTENERS[data["index"]]
+    
 def get_size(size):
     units = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB"]
     size = float(size)
@@ -745,5 +762,6 @@ async def get_seconds(time_string):
         return value * 86400 * 365
     else:
         return 0
+
 
 
