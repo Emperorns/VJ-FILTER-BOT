@@ -103,6 +103,8 @@ async def get_search_results(chat_id, query, file_type=None, max_results=10, off
                 max_results = 10
             else:
                 max_results = int(MAX_B_TN)
+            if query is None:
+                query = ""
     query = query.strip()
     if not query:
         raw_pattern = '.'
@@ -235,3 +237,4 @@ def unpack_new_file_id(new_file_id):
     )
     file_ref = encode_file_ref(decoded.file_reference)
     return file_id, file_ref
+
