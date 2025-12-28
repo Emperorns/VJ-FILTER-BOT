@@ -76,12 +76,11 @@ class Database:
             caption=None,
             message_command=None,
             save=False,
+            shortener_count=0,
             ban_status=dict(
                 is_banned=False,
                 ban_reason="",
             ),
-            # NEW: Shortener rotation index (0,1,2) for 3 shorteners
-            short_index=0
         )
 
 
@@ -240,25 +239,6 @@ class Database:
     async def update_user(self, user_data):
         await self.users.update_one({"id": user_data["id"]}, {"$set": user_data}, upsert=True)
 
-    # NEW: Get user's current shortener rotation index (0,1,2)
-    async def get_short_index(self, user_id):
-        user_data = await self.get_user(user_id)
-        if user_data:
-            return user_data.get("short_index", 0)
-        return 0
-
-    # NEW: Set user's next shortener rotation index
-    async def set_short_index(self, user_id, index):
-        # Ensure index stays in range 0,1,2
-        index = index % 3
-        user_data = await self.get_user(user_id)
-        if user_data:
-            user_data["short_index"] = index
-        else:
-            user_data = {"id": user_id, "short_index": index}
-        await self.update_user(user_data)
-        return index
-    
     async def has_premium_access(self, user_id):
         user_data = await self.get_user(user_id)
         if user_data:
@@ -327,6 +307,15 @@ class Database:
     async def get_save(self, id):
         user = await self.col.find_one({'id': int(id)})
         return user.get('save', False) 
+
+    # --- New Methods for Shortener Rotation ---
+    async def get_shortener_count(self, user_id):
+        user = await self.col.find_one({'id': int(user_id)})
+        return user.get('shortener_count', 0) if user else 0
+
+    async def update_shortener_count(self, user_id, count):
+        await self.col.update_one({'id': int(user_id)}, {'$set': {'shortener_count': count}})
+    # ------------------------------------------
     
 
-db = Database(USER_DB_URI, DATABASE_NAME)        
+db = Database(USER_DB_URI, DATABASE_NAME)
