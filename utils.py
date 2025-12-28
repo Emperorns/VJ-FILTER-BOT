@@ -509,34 +509,28 @@ async def get_clone_shortlink(link, url, api):
     link = await shortzy.convert(link)
     return link
                            
-async def get_shortlink(chat_id, link):
-    settings = await get_settings(chat_id) #fetching settings for group
-    if 'shortlink' in settings.keys():
-        URL = settings['shortlink']
-        API = settings['shortlink_api']
-    else:
-        URL = SHORTLINK_URL
-        API = SHORTLINK_API
-    if URL.startswith("shorturllink") or URL.startswith("terabox.in") or URL.startswith("urlshorten.in"):
-        URL = SHORTLINK_URL
-        API = SHORTLINK_API
-    if URL == "api.shareus.io":
-        url = f'https://{URL}/easy_api'
-        params = {
-            "key": API,
-            "link": link,
-        }
-        try:
+async def get_shortlink(chat_id, link, user_id):
+    try:
+        shortener = _select_shortener(user_id)
+
+        URL = shortener["url"]
+        API = shortener["api"]
+
+        if URL == "api.shareus.io":
+            api_url = f"https://{URL}/easy_api"
+            params = {
+                "key": API,
+                "link": link
+            }
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, raise_for_status=True, ssl=False) as response:
-                    data = await response.text()
-                    return data
-        except Exception as e:
-            logger.error(e)
-            return link
-    else:
-        shortzy = Shortzy(api_key=API, base_site=URL)
-        link = await shortzy.convert(link)
+                async with session.get(api_url, params=params, ssl=False) as resp:
+                    return await resp.text()
+        else:
+            shortzy = Shortzy(api_key=API, base_site=URL)
+            return await shortzy.convert(link)
+
+    except Exception as e:
+        logger.error(e)
         return link
     
 async def get_tutorial(chat_id):
@@ -762,6 +756,7 @@ async def get_seconds(time_string):
         return value * 86400 * 365
     else:
         return 0
+
 
 
 
