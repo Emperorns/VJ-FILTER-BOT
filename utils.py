@@ -10,7 +10,7 @@ from pyrogram import enums
 from pyrogram.errors import *
 from typing import Union
 from Script import script
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import List
 from database.users_chats_db import db
 from database.join_reqs import JoinReqs
@@ -736,3 +736,4 @@ async def get_seconds(time_string):
         return value * 86400 * 365
     else:
         return 0
+
