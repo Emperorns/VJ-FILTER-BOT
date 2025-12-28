@@ -10,7 +10,7 @@ from pyrogram import enums
 from pyrogram.errors import *
 from typing import Union
 from Script import script
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from typing import List
 from database.users_chats_db import db
 from database.join_reqs import JoinReqs
@@ -30,16 +30,7 @@ SECOND_SHORTENER = {}
 SMART_OPEN = '“'
 SMART_CLOSE = '”'
 START_CHAR = ('\'', '"', SMART_OPEN)
-# ================= ROTATING SHORTENERS =================
 
-ROTATING_SHORTENERS = [
-    {"url": "shortener1.com", "api": "API_KEY_1"},
-    {"url": "shortener2.com", "api": "API_KEY_2"},
-    {"url": "shortener3.com", "api": "API_KEY_3"},
-]
-
-USER_SHORTENER_STATE = {}   # {user_id: {"index": int, "time": datetime}}
-ROTATION_RESET_TIME = timedelta(hours=24)
 # temp db for banned 
 class temp(object):
     BANNED_USERS = []
@@ -239,23 +230,6 @@ async def save_group_settings(group_id, key, value):
     current = await get_settings(group_id)
     current.update({key: value})
     await db.update_settings(group_id, current)
-    
-def _select_shortener(user_id: int):
-    now = datetime.utcnow()
-
-    if user_id not in USER_SHORTENER_STATE:
-        USER_SHORTENER_STATE[user_id] = {"index": 0, "time": now}
-        return ROTATING_SHORTENERS[0]
-
-    data = USER_SHORTENER_STATE[user_id]
-
-    if now - data["time"] >= ROTATION_RESET_TIME:
-        data["index"] = 0
-        data["time"] = now
-        return ROTATING_SHORTENERS[0]
-
-    data["index"] = (data["index"] + 1) % len(ROTATING_SHORTENERS)
-    return ROTATING_SHORTENERS[data["index"]]
     
 def get_size(size):
     units = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB"]
@@ -503,35 +477,65 @@ def humanbytes(size):
     return str(round(size, 2)) + " " + Dic_powerN[n] + 'B'
 
 
-
 async def get_clone_shortlink(link, url, api):
     shortzy = Shortzy(api_key=api, base_site=url)
     link = await shortzy.convert(link)
     return link
                            
+# UPDATED FOR ROUND ROBIN ROTATION
 async def get_shortlink(chat_id, link, user_id):
-    try:
-        shortener = _select_shortener(user_id)
+    settings = await get_settings(chat_id) 
+    
+    # Check if custom settings exist for the group
+    if 'shortlink' in settings.keys():
+        URL = settings['shortlink']
+        API = settings['shortlink_api']
+        # If it's a group-specific custom shortener, we use it directly
+        # You can add rotation here too if you define multiple for groups
+    else:
+        # GLOBAL ROTATION LOGIC
+        # Fetch current turn (0, 1, or 2) from Database
+        count = await db.get_shortener_count(user_id)
+        
+        # Define the rotation pool from info.py
+        shorteners = [
+            {'url': SHORTLINK_URL, 'api': SHORTLINK_API},
+            {'url': SHORTLINK_2_URL, 'api': SHORTLINK_2_API},
+            {'url': SHORTLINK_3_URL, 'api': SHORTLINK_3_API}
+        ]
+        
+        # Pick current
+        current = shorteners[count % 3]
+        URL = current['url']
+        API = current['api']
 
-        URL = shortener["url"]
-        API = shortener["api"]
+        # Update turn in DB for next request
+        await db.update_shortener_count(user_id, (count + 1) % 3)
 
-        if URL == "api.shareus.io":
-            api_url = f"https://{URL}/easy_api"
-            params = {
-                "key": API,
-                "link": link
-            }
+    if URL.startswith("shorturllink") or URL.startswith("terabox.in") or URL.startswith("urlshorten.in"):
+        # Fallback to defaults if specific invalid domains are found
+        URL = SHORTLINK_URL
+        API = SHORTLINK_API
+
+    if URL == "api.shareus.io":
+        url = f'https://{URL}/easy_api'
+        params = {"key": API, "link": link}
+        try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(api_url, params=params, ssl=False) as resp:
-                    return await resp.text()
-        else:
+                async with session.get(url, params=params, raise_for_status=True, ssl=False) as response:
+                    data = await response.text()
+                    return data
+        except Exception as e:
+            logger.error(e)
+            return link
+    else:
+        try:
             shortzy = Shortzy(api_key=API, base_site=URL)
-            return await shortzy.convert(link)
-
-    except Exception as e:
-        logger.error(e)
-        return link
+            link = await shortzy.convert(link)
+            return link
+        except Exception as e:
+            logger.error(f"Rotation Shortener Error: {e}")
+            return link
     
 async def get_tutorial(chat_id):
     settings = await get_settings(chat_id) #fetching settings for group
@@ -618,12 +622,13 @@ async def check_verification(bot, userid):
     else:
         return False  
     
+# UPDATED TO PASS USERID TO SHORTENER
 async def send_all(bot, userid, files, ident, chat_id, user_name, query):
     settings = await get_settings(chat_id)
     if 'is_shortlink' in settings.keys():
         ENABLE_SHORTLINK = settings['is_shortlink']
     else:
-        await save_group_settings(message.chat.id, 'is_shortlink', False)
+        await save_group_settings(chat_id, 'is_shortlink', False)
         ENABLE_SHORTLINK = False
     try:
         if ENABLE_SHORTLINK:
@@ -631,11 +636,15 @@ async def send_all(bot, userid, files, ident, chat_id, user_name, query):
                 title = file["file_name"]
                 size = get_size(file["file_size"])
                 if not await db.has_premium_access(userid) and SHORTLINK_MODE == True:
-                    await bot.send_message(chat_id=userid, text=f"<b>Hᴇʏ ᴛʜᴇʀᴇ {user_name} 👋🏽 \n\n✅ Sᴇᴄᴜʀᴇ ʟɪɴᴋ ᴛᴏ ʏᴏᴜʀ ғɪʟᴇ ʜᴀs sᴜᴄᴄᴇssғᴜʟʟʏ ʙᴇᴇɴ ɢᴇɴᴇʀᴀᴛᴇᴅ ᴘʟᴇᴀsᴇ ᴄʟɪᴄᴋ ᴅᴏᴡɴʟᴏᴀᴅ ʙᴜᴛᴛᴏɴ\n\n🗃️ Fɪʟᴇ Nᴀᴍᴇ : {title}\n🔖 Fɪʟᴇ Sɪᴢᴇ : {size}</b>", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📤 Dᴏᴡɴʟᴏᴀᴅ 📥", url=await get_shortlink(
-    chat_id,
-    f"https://telegram.me/{temp.U_NAME}?start=files_{file['file_id']}",
-    userid
-))]]))
+                    # Logic: Create the bot start link and send it to get_shortlink with rotation
+                    start_link = f"https://telegram.me/{temp.U_NAME}?start=files_{file['file_id']}"
+                    shortened_url = await get_shortlink(chat_id, start_link, userid)
+                    
+                    await bot.send_message(
+                        chat_id=userid, 
+                        text=f"<b>Hᴇʏ ᴛʜᴇʀᴇ {user_name} 👋🏽 \n\n✅ Sᴇᴄᴜʀᴇ ʟɪɴᴋ ᴛᴏ ʏᴏᴜʀ ғɪʟᴇ ʜᴀs sᴜᴄᴄᴇssғᴜʟʟʏ ʙᴇᴇɴ ɢᴇɴᴇʀᴀᴛᴇᴅ ᴘʟᴇᴀsᴇ ᴄʟɪᴄᴋ ᴅᴏᴡɴʟᴏᴀᴅ ʙᴜᴛᴛᴏɴ\n\n🗃️ Fɪʟᴇ Nᴀᴍᴇ : {title}\n🔖 Fɪʟᴇ Sɪᴢᴇ : {size}</b>", 
+                        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📤 Dᴏᴡɴʟᴏᴀᴅ 📥", url=shortened_url)]])
+                    )
         else:
             for file in files:
                     f_caption = file["caption"]
@@ -672,6 +681,7 @@ async def send_all(bot, userid, files, ident, chat_id, user_name, query):
     except PeerIdInvalid:
         await query.answer('Hᴇʏ, Sᴛᴀʀᴛ Bᴏᴛ Fɪʀsᴛ Aɴᴅ Cʟɪᴄᴋ Sᴇɴᴅ Aʟʟ', show_alert=True)
     except Exception as e:
+        logger.error(f"Error in send_all: {e}")
         await query.answer('Hᴇʏ, Sᴛᴀʀᴛ Bᴏᴛ Fɪʀsᴛ Aɴᴅ Cʟɪᴄᴋ Sᴇɴᴅ Aʟʟ', show_alert=True)
         
 async def get_cap(settings, remaining_seconds, files, query, total_results, search):
@@ -760,8 +770,3 @@ async def get_seconds(time_string):
         return value * 86400 * 365
     else:
         return 0
-
-
-
-
-
