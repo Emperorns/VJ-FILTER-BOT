@@ -161,11 +161,11 @@ TUTORIAL = environ.get('TUTORIAL', 'https://t.me/disneysworl_d') # How Open Shor
 SHORTLINK_URL_1 = environ.get('SHORTLINK_URL_1', 'linkshortify.com')
 SHORTLINK_API_1 = environ.get('SHORTLINK_API_1', '7d706f6d7c95ff3fae2f2f40cff10abdc0e012e9')
 
-SHORTLINK_URL_2 = environ.get('SHORTLINK_URL_2', 'linkshortify.com'
+SHORTLINK_URL_2 = environ.get('SHORTLINK_URL_2', 'linkshortify.com') 
 SHORTLINK_API_2 = environ.get('SHORTLINK_API_2', '855369b89650532975525bffb466e6b5908233bb')
 
-SHORTLINK_URL_3 = environ.get('SHORTLINK_URL_3', 'arlinks.in''
-SHORTLINK_API_3 = environ.get('SHORTLINK_API_3', '285a1bb85cbf2463806b0079e084446264c7e62d''
+SHORTLINK_URL_3 = environ.get('SHORTLINK_URL_3', 'arlinks.in') 
+SHORTLINK_API_3 = environ.get('SHORTLINK_API_3', '285a1bb85cbf2463806b0079e084446264c7e62d') 
 
 
 # Others
@@ -233,6 +233,7 @@ else:
 # Don't Remove Credit @VJ_Botz
 # Subscribe YouTube Channel For Amazing Bot @Tech_VJ
 # Ask Doubt on telegram @KingVJ01
+
 
 
 
