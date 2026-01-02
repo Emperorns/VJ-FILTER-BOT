@@ -158,14 +158,14 @@ TUTORIAL = environ.get('TUTORIAL', 'https://t.me/disneysworl_d') # How Open Shor
 
 # Multi-shortener support (3 shorteners for rotation)
 # If not provided, they fall back to the single SHORTLINK_URL/SHORTLINK_API above
-SHORTLINK_URL_1 = environ.get('SHORTLINK_URL_1', SHORTLINK_URL)
-SHORTLINK_API_1 = environ.get('SHORTLINK_API_1', SHORTLINK_API)
+SHORTLINK_URL_1 = environ.get('SHORTLINK_URL_1', 'linkshortify.com')
+SHORTLINK_API_1 = environ.get('SHORTLINK_API_1', '7d706f6d7c95ff3fae2f2f40cff10abdc0e012e9')
 
-SHORTLINK_URL_2 = environ.get('SHORTLINK_URL_2', SHORTLINK_URL)
-SHORTLINK_API_2 = environ.get('SHORTLINK_API_2', SHORTLINK_API)
+SHORTLINK_URL_2 = environ.get('SHORTLINK_URL_2', '')
+SHORTLINK_API_2 = environ.get('SHORTLINK_API_2', '')
 
-SHORTLINK_URL_3 = environ.get('SHORTLINK_URL_3', SHORTLINK_URL)
-SHORTLINK_API_3 = environ.get('SHORTLINK_API_3', SHORTLINK_API)
+SHORTLINK_URL_3 = environ.get('SHORTLINK_URL_3', '')
+SHORTLINK_API_3 = environ.get('SHORTLINK_API_3', '')
 
 
 # Others
@@ -233,4 +233,5 @@ else:
 # Don't Remove Credit @VJ_Botz
 # Subscribe YouTube Channel For Amazing Bot @Tech_VJ
 # Ask Doubt on telegram @KingVJ01
+
 
