@@ -103,11 +103,6 @@ async def get_search_results(chat_id, query, file_type=None, max_results=10, off
                 max_results = 10
             else:
                 max_results = int(MAX_B_TN)
-
-    # Protection against NoneType query error
-    if query is None:
-        query = ""
-
     query = query.strip()
     if not query:
         raw_pattern = '.'
@@ -122,15 +117,15 @@ async def get_search_results(chat_id, query, file_type=None, max_results=10, off
         return []
 
     if USE_CAPTION_FILTER:
-        filter_query = {'$or': [{'file_name': regex}, {'caption': regex}]}
+        filter = {'$or': [{'file_name': regex}, {'caption': regex}]}
     else:
-        filter_query = {'file_name': regex}
+        filter = {'file_name': regex}
 
     if MULTIPLE_DATABASE == True:
-        cursor1 = col.find(filter_query)
-        cursor2 = sec_col.find(filter_query)
+        cursor1 = col.find(filter)
+        cursor2 = sec_col.find(filter)
     else:
-        cursor = col.find(filter_query)
+        cursor = col.find(filter)
         
     if MULTIPLE_DATABASE == True:
         files1 = [file for file in cursor1]
@@ -153,10 +148,11 @@ async def get_search_results(chat_id, query, file_type=None, max_results=10, off
 
 async def get_bad_files(query, file_type=None, filter=False):
     """For given query return (results, next_offset)"""
-    if query is None:
-        query = ""
     query = query.strip()
-    
+    #if filter:
+        #better ?
+        #query = query.replace(' ', r'(\s|\.|\+|\-|_)')
+        #raw_pattern = r'(\s|_|\-|\.|\+)' + query + r'(\s|_|\-|\.|\+)'
     if not query:
         raw_pattern = '.'
     elif ' ' not in query:
@@ -170,23 +166,22 @@ async def get_bad_files(query, file_type=None, filter=False):
         return []
 
     if USE_CAPTION_FILTER:
-        filter_query = {'$or': [{'file_name': regex}, {'caption': regex}]}
+        filter = {'$or': [{'file_name': regex}, {'caption': regex}]}
     else:
-        filter_query = {'file_name': regex}
+        filter = {'file_name': regex}
 
     if MULTIPLE_DATABASE == True:
-        result1 = col.count_documents(filter_query)
-        result2 = sec_col.count_documents(filter_query)
+        result1 = col.count_documents(filter)
+        result2 = sec_col.count_documents(filter)
         total_results = result1 + result2
     else:
-        total_results = col.count_documents(filter_query)
+        total_results = col.count_documents(filter)
     
     if MULTIPLE_DATABASE == True:
-        cursor1 = col.find(filter_query)
-        cursor2 = sec_col.find(filter_query)
+        cursor1 = col.find(filter)
+        cursor2 = sec_col.find(filter)
     else:
-        cursor = col.find(filter_query)
-        
+        cursor = col.find(filter)
     # Get list of files
     if MULTIPLE_DATABASE == True:
         files1 = list(cursor1)
@@ -198,10 +193,10 @@ async def get_bad_files(query, file_type=None, filter=False):
     return files, total_results
 
 async def get_file_details(query):
-    filter_query = {'file_id': query}
-    filedetails = col.find_one(filter_query)
+    filter = {'file_id': query}
+    filedetails = col.find_one(filter)
     if not filedetails:
-        filedetails = sec_col.find_one(filter_query)
+        filedetails = sec_col.find_one(filter)
     return filedetails
 
 
@@ -239,4 +234,4 @@ def unpack_new_file_id(new_file_id):
         )
     )
     file_ref = encode_file_ref(decoded.file_reference)
-    return file_id, file_ref        
+    return file_id, file_ref
