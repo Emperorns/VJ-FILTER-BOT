@@ -76,7 +76,6 @@ class Database:
             caption=None,
             message_command=None,
             save=False,
-            shortener_count=0,
             ban_status=dict(
                 is_banned=False,
                 ban_reason="",
@@ -307,15 +306,6 @@ class Database:
     async def get_save(self, id):
         user = await self.col.find_one({'id': int(id)})
         return user.get('save', False) 
-
-    # --- New Methods for Shortener Rotation ---
-    async def get_shortener_count(self, user_id):
-        user = await self.col.find_one({'id': int(user_id)})
-        return user.get('shortener_count', 0) if user else 0
-
-    async def update_shortener_count(self, user_id, count):
-        await self.col.update_one({'id': int(user_id)}, {'$set': {'shortener_count': count}})
-    # ------------------------------------------
     
 
 db = Database(USER_DB_URI, DATABASE_NAME)
