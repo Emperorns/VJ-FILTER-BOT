@@ -481,7 +481,7 @@ async def start(client, message):
         userid = message.from_user.id if message.from_user else None
         settings = await get_settings(chat_id)
         pre = 'allfilesp' if settings['file_secure'] else 'allfiles'
-        g = await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start={pre}_{file_id}", message.from_user.id)
+        g = await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start={pre}_{file_id}")
         btn = [[
             InlineKeyboardButton('📂 Dᴏᴡɴʟᴏᴀᴅ Nᴏᴡ 📂', url=g)
         ]]
@@ -500,7 +500,7 @@ async def start(client, message):
         pre = 'filep' if settings['file_secure'] else 'file'
         files_ = await get_file_details(file_id)
         files = files_
-        g = await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start={pre}_{file_id}", message.from_user.id)
+        g = await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start={pre}_{file_id}")
         btn = [[
             InlineKeyboardButton('📂 Dᴏᴡɴʟᴏᴀᴅ Nᴏᴡ 📂', url=g)
         ]]
@@ -578,7 +578,7 @@ async def start(client, message):
         if settings['is_shortlink'] and not await db.has_premium_access(user):
             files_ = await get_file_details(file_id)
             files = files_
-            g = await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start={pre}_{file_id}", message.from_user.id)
+            g = await get_shortlink(chat_id, f"https://telegram.me/{temp.U_NAME}?start={pre}_{file_id}")
             btn = [[
                 InlineKeyboardButton('📂 Dᴏᴡɴʟᴏᴀᴅ Nᴏᴡ 📂', url=g)
             ]]
@@ -1502,4 +1502,3 @@ async def purge_requests(client, message):
             parse_mode=enums.ParseMode.MARKDOWN,
             disable_web_page_preview=True
         )
-
